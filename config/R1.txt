@@ -15,7 +15,6 @@ boot-end-marker
 !
 logging buffered 16384 informational
 no logging console
-enable secret 9 $9$JH8wapKOU/R3Fv$CJALeVT04VE8nx0BbzTsGU6eel7IJV83ZfU2puhq9/6
 !
 no aaa new-model
 !
