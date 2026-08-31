@@ -5,7 +5,7 @@ This repository contains my BGP practice lab built in Cisco Modeling Labs (CML).
 I used one topology and expanded it step by step while studying BGP for CCNP Enterprise. The goal was not only to configure BGP, but also to understand the routing decisions, verify the results, and troubleshoot problems when something was intentionally broken.
 
 ## Topology
-
+### Logical Topology
 ```mermaid
 flowchart LR
     R1["R1<br/>AS65001<br/>Lo0 1.1.1.1/32"]
