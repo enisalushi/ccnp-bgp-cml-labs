@@ -24,8 +24,6 @@ flowchart LR
 
 ![Cisco CML BGP Topology](images/bgp-topology.png)
 
-### Logical Topology
-
 ### Main Links
 
 | Link | Network | Purpose |
