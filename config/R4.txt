@@ -1,0 +1,199 @@
+Building configuration...
+
+Current configuration : 4729 bytes
+!
+! Last configuration change at 17:26:59 UTC Mon Aug 31 2026 by admin
+!
+version 15.9
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+!
+hostname R4
+!
+boot-start-marker
+boot-end-marker
+!
+!
+logging buffered 16384 informational
+no logging console
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+no ip domain lookup
+ip domain name ccnp.lab
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+username test privilege 5 secret 9 $9$Faj4u5hBdLxadP$UMU3yQoLtfgk2ZhKOuM4I60l3xkk3jns4OvpD2pgzU.
+!
+redundancy
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ description R4_BGP_PREFIX
+ ip address 4.4.4.4 255.255.255.255
+ ip ospf 10 area 0
+!
+interface Loopback100
+ description BGP_SERVICE_PREFIX_R4
+ ip address 44.44.44.44 255.255.255.255
+!
+interface GigabitEthernet0/0
+ description IBGP_LINK_TO_R2
+ ip address 10.24.24.2 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf 10 area 0
+ duplex auto
+ speed auto
+ media-type rj45
+!
+interface GigabitEthernet0/1
+ description EBGP_LINK_TO_R1_AS65001
+ ip address 10.14.14.2 255.255.255.252
+ duplex auto
+ speed auto
+ media-type rj45
+!
+interface GigabitEthernet0/2
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+ media-type rj45
+!
+interface GigabitEthernet0/3
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+ media-type rj45
+!
+router ospf 10
+ router-id 4.4.4.4
+ passive-interface Loopback0
+!
+router bgp 65002
+ bgp router-id 4.4.4.4
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ neighbor 2.2.2.2 remote-as 65002
+ neighbor 2.2.2.2 update-source Loopback0
+ neighbor 5.5.5.5 remote-as 65002
+ neighbor 5.5.5.5 update-source Loopback0
+ neighbor 10.14.14.1 remote-as 65001
+ !
+ address-family ipv4
+  network 44.44.44.44 mask 255.255.255.255
+  neighbor 2.2.2.2 activate
+  neighbor 2.2.2.2 next-hop-self
+  neighbor 5.5.5.5 activate
+  neighbor 5.5.5.5 next-hop-self
+  neighbor 10.14.14.1 activate
+  neighbor 10.14.14.1 route-map SET-LP-R4 in
+ exit-address-family
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip ssh version 2
+!
+!
+ip prefix-list R1-PREFIX seq 10 permit 1.1.1.1/32
+ipv6 ioam timestamp
+!
+route-map SET-LP-R4 permit 10
+ match ip address prefix-list R1-PREFIX
+ set local-preference 200
+!
+route-map SET-LP-R4 permit 100
+!
+!
+!
+control-plane
+!
+banner exec ^CC
+**************************************************************************
+* IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+* education. IOSv is provided as-is and is not supported by Cisco's      *
+* Technical Advisory Center. Any use or disclosure, in whole or in part, *
+* of the IOSv Software or Documentation to any third party for any       *
+* purposes is expressly prohibited except as otherwise authorized by     *
+* Cisco in writing.                                                      *
+**************************************************************************^C
+banner incoming ^CC
+**************************************************************************
+* IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+* education. IOSv is provided as-is and is not supported by Cisco's      *
+* Technical Advisory Center. Any use or disclosure, in whole or in part, *
+* of the IOSv Software or Documentation to any third party for any       *
+* purposes is expressly prohibited except as otherwise authorized by     *
+* Cisco in writing.                                                      *
+**************************************************************************^C
+banner login ^CC
+**************************************************************************
+* IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+* education. IOSv is provided as-is and is not supported by Cisco's      *
+* Technical Advisory Center. Any use or disclosure, in whole or in part, *
+* of the IOSv Software or Documentation to any third party for any       *
+* purposes is expressly prohibited except as otherwise authorized by     *
+* Cisco in writing.                                                      *
+**************************************************************************^C
+banner motd ^CC
+****************************************
+AUTHORIZED ACCESS ONLY
+CCNP BGP LAB - R1
+****************************************
+^C
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+ login local
+line aux 0
+line vty 0 4
+ exec-timeout 0 0
+ logging synchronous
+ login local
+ transport input ssh
+!
+no scheduler allocate
+!
+end
