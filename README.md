@@ -6,7 +6,12 @@ I used one topology and expanded it step by step while studying BGP for CCNP Ent
 
 ## Topology
 
+## Topology
+
+### Logical Topology
+
 ```mermaid
+...
 flowchart LR
     R1["R1<br/>AS65001<br/>Lo0 1.1.1.1/32"]
     R2["R2<br/>AS65002<br/>Route Reflector<br/>Lo0 2.2.2.2/32"]
