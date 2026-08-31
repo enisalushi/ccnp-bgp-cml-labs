@@ -1,0 +1,173 @@
+hostname R3
+!
+no ip domain lookup
+ip domain name ccnp.lab
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+interface Loopback0
+ description R3_BGP_PREFIX
+ ip address 3.3.3.3 255.255.255.255
+!
+interface Loopback100
+ description BGP_FILTER_TEST_1
+ ip address 30.30.32.1 255.255.255.0
+!
+interface Loopback101
+ description BGP_FILTER_TEST_2
+ ip address 30.30.33.1 255.255.255.0
+!
+interface Loopback102
+ description BGP_FILTER_TEST_3
+ ip address 30.30.34.1 255.255.255.128
+!
+interface Loopback103
+ description BGP_FILTER_TEST_4
+ ip address 30.30.34.129 255.255.255.192
+!
+interface Loopback104
+ description COMMUNITY_TEST_PREFIX
+ ip address 30.30.35.1 255.255.255.0
+!
+interface Loopback105
+ description NO_EXPORT_TEST
+ ip address 30.30.36.1 255.255.255.0
+!
+interface Loopback106
+ description NO_ADVERTISE_TEST
+ ip address 30.30.37.1 255.255.255.0
+!
+interface Loopback107
+ description COMMUNITY_ADDITTIVE_TEST
+ ip address 30.30.38.1 255.255.255.0
+!
+interface Loopback110
+ description AGGREGATE_TEST_1
+ ip address 40.40.0.1 255.255.255.0
+!
+interface Loopback111
+ description AGGREGATE_TEST_2
+ ip address 40.40.1.1 255.255.255.0
+!
+interface Loopback112
+ description AGGREGATE_TEST_3
+ ip address 40.40.2.1 255.255.255.0
+!
+interface Loopback113
+ description AGGREGATE_TEST_4
+ ip address 40.40.3.1 255.255.255.0
+!
+interface Loopback200
+ description AS_SET_LOCAL_PREFIX
+ ip address 50.50.0.1 255.255.255.0
+!
+interface Loopback220
+ description IPV6_SERVICE_AS65003
+ no ip address
+ ipv6 address 2001:DB8:3:50::1/64
+!
+interface Loopback230
+ description POLICY_TROUBLESHOOT_PREFIX
+ ip address 172.16.70.1 255.255.255.0
+!
+interface GigabitEthernet0/0
+ description EBGP_LINK_TO_R2
+ ip address 10.23.23.2 255.255.255.252
+ ipv6 address 2001:DB8:23::2/64
+ bfd interval 300 min_rx 300 multiplier 3
+!
+interface GigabitEthernet0/1
+ no ip address
+ shutdown
+!
+interface GigabitEthernet0/2
+ no ip address
+ shutdown
+!
+interface GigabitEthernet0/3
+ no ip address
+ shutdown
+!
+router bgp 65003
+ bgp router-id 3.3.3.3
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ neighbor 10.23.23.1 remote-as 65002
+ neighbor 10.23.23.1 ttl-security hops 1
+ neighbor 10.23.23.1 password 7 123B22275F272D26677970
+ neighbor 10.23.23.1 timers 10 30
+ neighbor 10.23.23.1 fall-over bfd
+ neighbor 2001:DB8:23::1 remote-as 65002
+ !
+ address-family ipv4
+  network 3.3.3.3 mask 255.255.255.255
+  network 30.30.32.0 mask 255.255.255.0
+  network 30.30.33.0 mask 255.255.255.0
+  network 30.30.34.0 mask 255.255.255.128
+  network 30.30.34.128 mask 255.255.255.192
+  network 30.30.35.0 mask 255.255.255.0
+  network 30.30.36.0 mask 255.255.255.0
+  network 30.30.37.0 mask 255.255.255.0
+  network 30.30.38.0 mask 255.255.255.0
+  network 40.40.0.0 mask 255.255.255.0
+  network 40.40.1.0 mask 255.255.255.0
+  network 40.40.2.0 mask 255.255.255.0
+  network 40.40.3.0 mask 255.255.255.0
+  network 50.50.0.0 mask 255.255.255.0
+  network 172.16.70.0 mask 255.255.255.0
+  aggregate-address 50.50.0.0 255.255.254.0 as-set summary-only
+  aggregate-address 40.40.0.0 255.255.252.0 suppress-map SUPPRESS-SPECIFIC
+  neighbor 10.23.23.1 activate
+  neighbor 10.23.23.1 send-community
+  neighbor 10.23.23.1 route-map SET-COMMUNITY-TO-R2 out
+  neighbor 10.23.23.1 unsuppress-map UNSUPPRESS-TO-R2
+ exit-address-family
+ !
+ address-family ipv6
+  network 2001:DB8:3:50::/64
+  neighbor 2001:DB8:23::1 activate
+ exit-address-family
+!
+ip bgp-community new-format
+!
+ip prefix-list ADDITIVE-PREFIX seq 10 permit 30.30.38.0/24
+ip prefix-list COMMUNITY-PREFIX seq 10 permit 30.30.35.0/24
+ip prefix-list NO-ADVERTISE-PREFIX seq 10 permit 30.30.37.0/24
+ip prefix-list NO-EXPORT-PREFIX seq 10 permit 30.30.36.0/24
+ip prefix-list SUPPRESS-PREFIX seq 10 permit 40.40.2.0/24
+!
+route-map SUPPRESS-SPECIFIC permit 10
+ match ip address prefix-list SUPPRESS-PREFIX
+!
+route-map SET-COMMUNITY-TO-R2 permit 10
+ match ip address prefix-list COMMUNITY-PREFIX
+ set community 65003:100
+!
+route-map SET-COMMUNITY-TO-R2 permit 20
+ match ip address prefix-list NO-EXPORT-PREFIX
+ set community no-export
+!
+route-map SET-COMMUNITY-TO-R2 permit 30
+ match ip address prefix-list NO-ADVERTISE-PREFIX
+ set community no-advertise
+!
+route-map SET-COMMUNITY-TO-R2 permit 40
+ match ip address prefix-list ADDITIVE-PREFIX
+ set community 65003:100 65003:200
+!
+route-map SET-COMMUNITY-TO-R2 permit 100
+!
+route-map UNSUPPRESS-TO-R2 permit 10
+ match ip address prefix-list SUPPRESS-PREFIX
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+!
+line vty 0 4
+ exec-timeout 0 0
+ logging synchronous
+ transport input ssh
+!
+end
