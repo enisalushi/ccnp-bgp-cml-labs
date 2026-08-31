@@ -6,8 +6,6 @@ I used one topology and expanded it step by step while studying BGP for CCNP Ent
 
 ## Topology
 
-### Logical Topology
-
 ```mermaid
 flowchart LR
     R1["R1<br/>AS65001<br/>Lo0 1.1.1.1/32"]
@@ -21,6 +19,7 @@ flowchart LR
     R2 ---|"iBGP + OSPF<br/>10.24.24.0/30"| R4
     R2 ---|"iBGP + OSPF<br/>10.25.25.0/30"| R5
     R1 ---|"eBGP<br/>10.14.14.0/30"| R4
+```
 ## Lab Topology
 
 ![Cisco CML BGP Topology](images/bgp-topology.png)
