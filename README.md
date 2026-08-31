@@ -6,10 +6,6 @@ I used one topology and expanded it step by step while studying BGP for CCNP Ent
 
 ## Topology
 
-## Topology
-
-### Logical Topology
-
 ```mermaid
 ...
 flowchart LR
