@@ -20,6 +20,11 @@ flowchart LR
     R2 ---|"iBGP + OSPF<br/>10.25.25.0/30"| R5
     R1 ---|"eBGP<br/>10.14.14.0/30"| R4
 ```
+## Lab Topology
+
+![Cisco CML BGP Topology](images/bgp-topology.png)
+
+### Logical Topology
 
 ### Main Links
 
