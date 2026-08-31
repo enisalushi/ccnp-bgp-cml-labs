@@ -1,0 +1,75 @@
+hostname R4
+!
+no ip domain lookup
+ip domain name ccnp.lab
+ip cef
+!
+interface Loopback0
+ description R4_BGP_PREFIX
+ ip address 4.4.4.4 255.255.255.255
+ ip ospf 10 area 0
+!
+interface Loopback100
+ description BGP_SERVICE_PREFIX_R4
+ ip address 44.44.44.44 255.255.255.255
+!
+interface GigabitEthernet0/0
+ description IBGP_LINK_TO_R2
+ ip address 10.24.24.2 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf 10 area 0
+!
+interface GigabitEthernet0/1
+ description EBGP_LINK_TO_R1_AS65001
+ ip address 10.14.14.2 255.255.255.252
+!
+interface GigabitEthernet0/2
+ no ip address
+ shutdown
+!
+interface GigabitEthernet0/3
+ no ip address
+ shutdown
+!
+router ospf 10
+ router-id 4.4.4.4
+ passive-interface Loopback0
+!
+router bgp 65002
+ bgp router-id 4.4.4.4
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ neighbor 2.2.2.2 remote-as 65002
+ neighbor 2.2.2.2 update-source Loopback0
+ neighbor 5.5.5.5 remote-as 65002
+ neighbor 5.5.5.5 update-source Loopback0
+ neighbor 10.14.14.1 remote-as 65001
+ !
+ address-family ipv4
+  network 44.44.44.44 mask 255.255.255.255
+  neighbor 2.2.2.2 activate
+  neighbor 2.2.2.2 next-hop-self
+  neighbor 5.5.5.5 activate
+  neighbor 5.5.5.5 next-hop-self
+  neighbor 10.14.14.1 activate
+  neighbor 10.14.14.1 route-map SET-LP-R4 in
+ exit-address-family
+!
+ip prefix-list R1-PREFIX seq 10 permit 1.1.1.1/32
+!
+route-map SET-LP-R4 permit 10
+ match ip address prefix-list R1-PREFIX
+ set local-preference 200
+!
+route-map SET-LP-R4 permit 100
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+!
+line vty 0 4
+ exec-timeout 0 0
+ logging synchronous
+ transport input ssh
+!
+end
