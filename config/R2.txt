@@ -1,0 +1,178 @@
+hostname R2
+!
+no ip domain lookup
+ip domain name ccnp.lab
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+interface Loopback0
+ description R2_BGP_PREFIX
+ ip address 2.2.2.2 255.255.255.255
+ ip ospf 10 area 0
+ ip ospf cost 2
+!
+interface Loopback100
+ description BGP_SERVICE_PREFIX_R2
+ ip address 22.22.22.22 255.255.255.255
+!
+interface Loopback200
+ description AS_SET_TEST_PREFIX
+ ip address 50.50.1.1 255.255.255.0
+!
+interface Loopback210
+ description CONDITIONAL_SERVICE_PREFIX
+ ip address 172.16.50.1 255.255.255.0
+!
+interface Loopback211
+ description CONDITIONAL_BACKUP_PREFIX
+ ip address 172.16.60.1 255.255.255.0
+!
+interface Loopback220
+ description IPV6_SERVICE_AS65002
+ no ip address
+ ipv6 address 2001:DB8:2:50::1/64
+!
+interface GigabitEthernet0/0
+ description EBGP_LINK_TO_R1
+ ip address 10.12.12.2 255.255.255.252
+!
+interface GigabitEthernet0/1
+ description EBGP_LINK_TO_R3
+ ip address 10.23.23.1 255.255.255.252
+ ipv6 address 2001:DB8:23::1/64
+ bfd interval 300 min_rx 300 multiplier 3
+!
+interface GigabitEthernet0/2
+ description IBGP_LINK_TO_R4
+ ip address 10.24.24.1 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf 10 area 0
+!
+interface GigabitEthernet0/3
+ description IBGP_LINK_TO_R5
+ ip address 10.25.25.1 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf 10 area 0
+!
+router ospf 10
+ router-id 2.2.2.2
+ passive-interface Loopback0
+!
+router bgp 65002
+ bgp router-id 2.2.2.2
+ bgp cluster-id 2.2.2.2
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ neighbor RR-CLIENTS peer-group
+ neighbor RR-CLIENTS remote-as 65002
+ neighbor RR-CLIENTS update-source Loopback0
+ neighbor 4.4.4.4 remote-as 65002
+ neighbor 4.4.4.4 peer-group RR-CLIENTS
+ neighbor 4.4.4.4 update-source Loopback0
+ neighbor 5.5.5.5 remote-as 65002
+ neighbor 5.5.5.5 peer-group RR-CLIENTS
+ neighbor 5.5.5.5 update-source Loopback0
+ neighbor 10.12.12.1 remote-as 65001
+ neighbor 10.23.23.2 remote-as 65003
+ neighbor 10.23.23.2 ttl-security hops 1
+ neighbor 10.23.23.2 password 7 112B3E355A3E2A2E49787F
+ neighbor 10.23.23.2 timers 10 30
+ neighbor 10.23.23.2 fall-over bfd
+ neighbor 2001:DB8:23::2 remote-as 65003
+ !
+ address-family ipv4
+  network 22.22.22.22 mask 255.255.255.255
+  network 50.50.1.0 mask 255.255.255.0
+  network 172.16.50.0 mask 255.255.255.0
+  network 172.16.60.0 mask 255.255.255.0
+  neighbor RR-CLIENTS route-reflector-client
+  neighbor 4.4.4.4 activate
+  neighbor 5.5.5.5 activate
+  neighbor 10.12.12.1 activate
+  neighbor 10.12.12.1 route-map PREPEND-TO-R1 out
+  neighbor 10.23.23.2 activate
+  neighbor 10.23.23.2 advertise-map ADVERTISE-BACKUP non-exist-map UPSTREAM-EXISTS
+  neighbor 10.23.23.2 default-originate route-map CONDITIONAL-DEFAULT
+  neighbor 10.23.23.2 prefix-list R3-OUT out
+  neighbor 10.23.23.2 route-map R3-POLICY-IN in
+  neighbor 10.23.23.2 maximum-prefix 30 80
+ exit-address-family
+ !
+ address-family ipv6
+  network 2001:DB8:2:50::/64
+  neighbor 2001:DB8:23::2 activate
+ exit-address-family
+!
+ip bgp-community new-format
+ip community-list standard R3-COMMUNITY-100 permit 65003:100
+ip community-list standard R3-COMMUNITY-200 permit 65003:200
+!
+ip prefix-list BACKUP-PREFIX seq 10 permit 172.16.60.0/24
+ip prefix-list DEFAULT-TRACK seq 10 permit 203.0.113.0/24
+ip prefix-list PREPEND-PREFIX seq 10 permit 22.22.22.22/32
+ip prefix-list R3-BLOCK seq 10 permit 30.30.34.0/25
+ip prefix-list R3-IN seq 5 permit 3.3.3.3/32
+ip prefix-list R3-IN seq 10 permit 30.30.32.0/22 ge 24 le 25
+ip prefix-list R3-IN seq 20 permit 30.30.36.0/24
+ip prefix-list R3-IN seq 30 permit 30.30.37.0/24
+ip prefix-list R3-IN seq 40 permit 30.30.38.0/24
+ip prefix-list R3-IN seq 50 permit 40.40.0.0/22 le 24
+ip prefix-list R3-IN seq 60 permit 50.50.0.0/23 le 24
+ip prefix-list R3-IN seq 70 permit 172.16.70.0/24
+ip prefix-list R3-OUT seq 5 deny 22.22.22.22/32
+ip prefix-list R3-OUT seq 100 permit 0.0.0.0/0 le 32
+ip prefix-list R3-PREFER seq 10 permit 30.30.32.0/24
+ip prefix-list SERVICE-PREFIX seq 10 permit 172.16.50.0/24
+ip prefix-list UPSTREAM-PREFIX seq 10 permit 203.0.113.0/24
+!
+route-map R3-COMMUNITY-200 permit 10
+ set community 65002:300 additive
+!
+route-map PREPEND-TO-R1 permit 10
+ match ip address prefix-list PREPEND-PREFIX
+ set as-path prepend 65002 65002 65002
+!
+route-map PREPEND-TO-R1 permit 100
+!
+route-map UPSTREAM-EXISTS permit 10
+ match ip address prefix-list UPSTREAM-PREFIX
+!
+route-map CONDITIONAL-DEFAULT permit 10
+ match ip address prefix-list DEFAULT-TRACK
+!
+route-map ADVERTISE-SERVICE permit 10
+ match ip address prefix-list SERVICE-PREFIX
+!
+route-map R3-POLICY-IN deny 10
+ match ip address prefix-list R3-BLOCK
+!
+route-map R3-POLICY-IN permit 20
+ match ip address prefix-list R3-PREFER
+ set local-preference 250
+!
+route-map R3-POLICY-IN permit 22
+ match community R3-COMMUNITY-200
+ set comm-list R3-COMMUNITY-200 delete
+ set community 65002:300 additive
+!
+route-map R3-POLICY-IN permit 25
+ match community R3-COMMUNITY-100
+ set local-preference 300
+!
+route-map R3-POLICY-IN permit 30
+ match ip address prefix-list R3-IN
+!
+route-map ADVERTISE-BACKUP permit 10
+ match ip address prefix-list BACKUP-PREFIX
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+!
+line vty 0 4
+ exec-timeout 0 0
+ logging synchronous
+ transport input ssh
+!
+end
