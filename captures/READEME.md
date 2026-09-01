@@ -52,7 +52,7 @@ with no path attributes required.
 
 ```text
 bgp
-tcp.port == 179
-bgp.type == 1
-bgp.type == 2
-ip.addr == 10.23.23.1 && ip.addr == 10.23.23.2
+tcp.port = 179
+bgp.type = 1
+bgp.type = 2
+ip and tcp port 179 and host 10.23.23.1 and host 10.23.23.2
