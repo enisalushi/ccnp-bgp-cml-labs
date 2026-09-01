@@ -4,8 +4,8 @@ This folder contains Wireshark packet captures from the Cisco CML BGP lab.
 
 The captures were taken on the eBGP link between:
 
-- R2 — AS65002 — 10.23.23.1
-- R3 — AS65003 — 10.23.23.2
+- R2 - AS65002 - 10.23.23.1
+- R3 - AS65003 - 10.23.23.2
 
 ## Captures
 
