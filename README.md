@@ -7,18 +7,19 @@ I used one topology and expanded it step by step while studying BGP for CCNP Ent
 ## Topology
 ### Logical Topology
 ```mermaid
-flowchart LR
-    R1["R1<br/>AS65001<br/>Lo0 1.1.1.1/32"]
-    R2["R2<br/>AS65002<br/>Route Reflector<br/>Lo0 2.2.2.2/32"]
-    R3["R3<br/>AS65003<br/>Lo0 3.3.3.3/32"]
-    R4["R4<br/>AS65002<br/>RR Client<br/>Lo0 4.4.4.4/32"]
-    R5["R5<br/>AS65002<br/>RR Client<br/>Lo0 5.5.5.5/32"]
 
-    R1 ---|"eBGP<br/>10.12.12.0/30"| R2
-    R2 ---|"eBGP<br/>10.23.23.0/30<br/>IPv6: 2001:DB8:23::/64"| R3
-    R2 ---|"iBGP + OSPF<br/>10.24.24.0/30"| R4
-    R2 ---|"iBGP + OSPF<br/>10.25.25.0/30"| R5
-    R1 ---|"eBGP<br/>10.14.14.0/30"| R4
+flowchart LR
+    R1["R1 - AS 65001"]
+    R2["R2 - AS 65002 - Route Reflector"]
+    R3["R3 - AS 65003"]
+    R4["R4 - AS 65002 - RR Client"]
+    R5["R5 - AS 65002 - RR Client"]
+
+    R1 ---|eBGP| R2
+    R2 ---|eBGP| R3
+    R2 ---|iBGP and OSPF| R4
+    R2 ---|iBGP and OSPF| R5
+    R1 ---|eBGP| R4
 ```
 ## Lab Topology
 
